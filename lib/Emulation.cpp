@@ -351,6 +351,11 @@ void Emulation::setImageSize(int lines, int columns)
   if ((lines < 1) || (columns < 1))
     return;
 
+  qDebug() << "Emulation::setImageSize"
+           << "lines" << lines << "columns" << columns
+           << "current"
+           << _screen[0]->getLines() << _screen[0]->getColumns();
+
   QSize screenSize[2] = { QSize(_screen[0]->getColumns(),
                                 _screen[0]->getLines()),
                           QSize(_screen[1]->getColumns(),
@@ -510,4 +515,3 @@ ExtendedCharTable ExtendedCharTable::instance;
 
 
 //#include "Emulation.moc"
-

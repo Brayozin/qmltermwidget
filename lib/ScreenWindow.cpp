@@ -62,15 +62,25 @@ Character* ScreenWindow::getImage()
     int size = windowLines() * windowColumns();
     if (_windowBuffer == nullptr || _windowBufferSize != size)
     {
+        qDebug() << "ScreenWindow::getImage realloc"
+                 << "old" << _windowBuffer << "oldSize" << _windowBufferSize
+                 << "newSize" << size
+                 << "lines/cols" << windowLines() << windowColumns();
         delete[] _windowBuffer;
         _windowBufferSize = size;
         _windowBuffer = new Character[size];
         _bufferNeedsUpdate = true;
+        qDebug() << "ScreenWindow::getImage new buffer" << _windowBuffer;
     }
 
      if (!_bufferNeedsUpdate)
         return _windowBuffer;
 
+    qDebug() << "ScreenWindow::getImage fill"
+             << "buffer" << _windowBuffer
+             << "size" << size
+             << "currentLine" << currentLine()
+             << "endLine" << endWindowLine();
     _screen->getImage(_windowBuffer,size,
                       currentLine(),endWindowLine());
 

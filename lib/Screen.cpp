@@ -343,6 +343,11 @@ void Screen::resizeImage(int new_lines, int new_columns)
 {
     if ((new_lines==lines) && (new_columns==columns)) return;
 
+    qDebug() << "Screen::resizeImage"
+             << "from" << lines << columns
+             << "to" << new_lines << new_columns
+             << "screenLines" << screenLines;
+
     if (cuY > new_lines-1)
     { // attempt to preserve focus and lines
         _bottomMargin = lines-1; //FIXME: margin lost
@@ -368,6 +373,7 @@ void Screen::resizeImage(int new_lines, int new_columns)
 
     delete[] screenLines;
     screenLines = newScreenLines;
+    qDebug() << "Screen::resizeImage new screenLines" << screenLines;
 
     lines = new_lines;
     columns = new_columns;

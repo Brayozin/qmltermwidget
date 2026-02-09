@@ -52,6 +52,7 @@
 #include <QQuickWindow>
 #include <QUrl>
 #include <QDrag>
+#include <QThread>
 
 // KDE
 //#include <kshell.h>
@@ -1165,6 +1166,10 @@ void TerminalDisplay::updateImage()
   if ( !_screenWindow )
       return;
 
+  qDebug() << "TerminalDisplay::updateImage begin"
+           << "image" << _image << "size" << _imageSize
+           << "lines/cols" << _lines << _columns;
+
   // TODO QMLTermWidget at the moment I'm disabling this.
   // Since this can't be scrolled we need to determine if this
   // is useful or not.
@@ -1185,6 +1190,9 @@ void TerminalDisplay::updateImage()
   Character* const newimg = _screenWindow->getImage();
   int lines = _screenWindow->windowLines();
   int columns = _screenWindow->windowColumns();
+  qDebug() << "TerminalDisplay::updateImage screenWindow"
+           << "lines/cols" << lines << columns
+           << "newimg" << newimg;
 
   setScroll( _screenWindow->currentLine() , _screenWindow->lineCount() );
 
@@ -1461,6 +1469,13 @@ void TerminalDisplay::focusInEvent(QFocusEvent*)
 // QMLTermWidget version. See the upstream commented version for reference.
 void TerminalDisplay::paint(QPainter *painter)
 {
+    qDebug() << "TerminalDisplay::paint thread"
+             << QThread::currentThread()
+             << "id" << QThread::currentThreadId();
+    qDebug() << "TerminalDisplay::paint size"
+             << width() << height()
+             << "lines/cols" << _lines << _columns
+             << "image" << _image << "size" << _imageSize;
     QRect cr = contentsRect();
 
     if ( !_backgroundImage.isNull() )
@@ -2085,6 +2100,19 @@ void TerminalDisplay::blinkCursorEvent()
 
 void TerminalDisplay::resizeEvent(QResizeEvent*)
 {
+  qDebug() << "TerminalDisplay::resizeEvent thread"
+           << QThread::currentThread()
+           << "id" << QThread::currentThreadId();
+  qDebug() << "TerminalDisplay::resizeEvent size"
+           << width() << height()
+           << "content" << _contentWidth << _contentHeight
+           << "lines/cols" << _lines << _columns
+           << "font" << _fontWidth << _fontHeight;
+  if (width() <= 0 || height() <= 0) {
+    qDebug() << "TerminalDisplay::resizeEvent skip invalid size"
+             << width() << height();
+    return;
+  }
   updateImageSize();
   processFilters();
 }
@@ -2105,11 +2133,20 @@ void TerminalDisplay::propagateSize()
 
 void TerminalDisplay::updateImageSize()
 {
+  qDebug() << "TerminalDisplay::updateImageSize begin"
+           << "lines/cols" << _lines << _columns
+           << "content" << _contentWidth << _contentHeight
+           << "image" << _image << "size" << _imageSize;
   Character* oldimg = _image;
   int oldlin = _lines;
   int oldcol = _columns;
 
   makeImage();
+  qDebug() << "TerminalDisplay::updateImageSize after makeImage"
+           << "old" << oldimg << "new" << _image
+           << "old lines/cols" << oldlin << oldcol
+           << "new lines/cols" << _lines << _columns
+           << "imageSize" << _imageSize;
 
   // copy the old image to reduce flicker
   int lines = qMin(oldlin,_lines);
@@ -2123,6 +2160,8 @@ void TerminalDisplay::updateImageSize()
              (void*)&oldimg[oldcol*line],columns*sizeof(Character));
     }
     delete[] oldimg;
+    qDebug() << "TerminalDisplay::updateImageSize deleted old image"
+             << oldimg;
   }
 
   if (_screenWindow)
@@ -2137,6 +2176,8 @@ void TerminalDisplay::updateImageSize()
   }
 
   _resizing = false;
+  qDebug() << "TerminalDisplay::updateImageSize end"
+           << "resizing" << _resizing;
 }
 
 //showEvent and hideEvent are reimplemented here so that it appears to other classes that the
@@ -3475,6 +3516,10 @@ void TerminalDisplay::calcGeometry()
 
 void TerminalDisplay::makeImage()
 {
+  qDebug() << "TerminalDisplay::makeImage begin"
+           << "lines/cols" << _lines << _columns
+           << "imageSize" << _imageSize
+           << "image" << _image;
   calcGeometry();
 
   // confirm that array will be of non-zero size, since the painting code
@@ -3487,6 +3532,8 @@ void TerminalDisplay::makeImage()
   // We over-commit one character so that we can be more relaxed in dealing with
   // certain boundary conditions: _image[_imageSize] is a valid but unused position
   _image = new Character[_imageSize+1];
+  qDebug() << "TerminalDisplay::makeImage new image"
+           << _image << "size" << _imageSize;
 
   clearImage();
 }
@@ -3746,6 +3793,10 @@ bool AutoScrollHandler::eventFilter(QObject* watched,QEvent* event)
 void TerminalDisplay::geometryChange(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
     if (newGeometry != oldGeometry) {
+        qDebug() << "TerminalDisplay::geometryChange thread"
+                 << QThread::currentThread()
+                 << "id" << QThread::currentThreadId()
+                 << "old" << oldGeometry << "new" << newGeometry;
         resizeEvent(NULL);
         update();
     }
