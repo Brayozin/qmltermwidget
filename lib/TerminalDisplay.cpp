@@ -178,7 +178,6 @@ void TerminalDisplay::setBackgroundColor(const QColor& color)
 
     update();
 }
-
 void TerminalDisplay::setForegroundColor(const QColor& color)
 {
     _colorTable[DEFAULT_FORE_COLOR].color = color;
@@ -960,7 +959,7 @@ void TerminalDisplay::drawTextFragment(QPainter& painter ,
     // draw background if different from the display's background color
     if ( backgroundColor != palette().window().color() )
         drawBackground(painter,rect,backgroundColor,
-                       true /* use transparency */);
+                       false /* do not use transparency */);
 
     // draw cursor shape if the current character is the cursor
     // this may alter the foreground and background colors
